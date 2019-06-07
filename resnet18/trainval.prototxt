@@ -1117,6 +1117,15 @@ layer {
       pool: AVE
       }
 }
+layer{
+  bottom: "pool5"
+  top: "pool5"
+  type: "Dropout"
+  name: "dropout"
+  dropout_param{
+    dropout_ratio: 0.3
+  }
+}
 
 layer {
   bottom: "pool5"
