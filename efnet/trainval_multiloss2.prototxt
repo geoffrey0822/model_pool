@@ -78,7 +78,7 @@ layer{
         decay_mult: 1
     }
     convolution_param{
-        num_output: 64
+        num_output: 16
         kernel_size: 3
         pad: 1
         stride: 1
@@ -105,7 +105,7 @@ layer{
         decay_mult: 1
     }
     convolution_param{
-        num_output: 64
+        num_output: 16
         kernel_size: 3
         pad: 1
         stride: 1
@@ -134,30 +134,18 @@ layer{
     }
 }
 layer{
-    name: "si1_pool"
-    type: "Pooling"
-    bottom: "si1_input"
-    top: "si1_pool"
-    pooling_param{
-        pool: AVE
-        kernel_size: 3
-        pad: 1
-        stride: 2
-    }
-}
-layer{
     name: "si1_filter"
     type: "Convolution"
-    bottom: "si1_pool"
+    bottom: "si1_input"
     top: "si1_output"
     param{
         lr_mult: 1
         decay_mult: 1
     }
     convolution_param{
-        num_output: 64
-        kernel_size: 3
-        pad: 1
+        num_output: 32
+        kernel_size: 1
+        pad: 0
         bias_term: false
         weight_filler{
             type: "msra"
@@ -169,15 +157,6 @@ layer{
     type: "ReLU"
     bottom: "si1_output"
     top: "si1_output"
-}
-layer{
-    name: "si1_output_dropout"
-    type: "Dropout"
-    bottom: "si1_output"
-    top: "si1_output"
-    dropout_param{
-        dropout_ratio: 0.5
-    }
 }
 layer{
     name: "conv1"
@@ -193,7 +172,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 64
+        num_output: 32
         kernel_size: 3
         pad: 1
         weight_filler{
@@ -213,28 +192,29 @@ layer{
 }
 
 layer{
+    name: "fusion1"
+    type: "Concat"
+    bottom: "conv1"
+    bottom: "si1_output"
+    top: "fused1"
+}
+
+layer{
     name: "pool1"
     type: "Pooling"
-    bottom: "conv1"
+    bottom: "fused1"
     top: "pool1"
     pooling_param{
-        pool: MAX
+        pool: AVE
         kernel_size: 5
         pad: 2
         stride: 2
     }
 }
 layer{
-    name: "fusion1"
-    type: "Concat"
-    bottom: "pool1"
-    bottom: "si1_output"
-    top: "fused1"
-}
-layer{
     name: "conv2"
     type: "Convolution"
-    bottom: "fused1" #112
+    bottom: "pool1" #112
     top: "conv2"
     param{
         lr_mult: 1
@@ -615,45 +595,5 @@ layer{
     bottom: "fc_cifar10"
     bottom: "label"
     top: "top-1"
-}
-
-layer{
-    name: "module_fc"
-    type: "InnerProduct"
-    bottom: "si1_output"
-    top: "module_output"
-    param{
-        lr_mult: 1
-        decay_mult: 1
-    }
-    param{
-        lr_mult: 2
-        decay_mult: 0
-    }
-    inner_product_param{
-        num_output: 10
-        weight_filler{
-            type: "msra"
-        }
-        bias_filler{
-            type: "constant"
-            value: 0
-        }
-    }
-}
-layer{
-    name: "partial_loss"
-    type: "SoftmaxWithLoss"
-    bottom: "module_output"
-    bottom: "label"
-    top: "partial_loss-1"
-    loss_weight: 0.3
-}
-layer{
-    name: "partial_acc"
-    type: "Accuracy"
-    bottom: "module_output"
-    bottom: "label"
-    top: "partial_top1"
 }
 
