@@ -1,0 +1,12 @@
+net: "m:/model_pool/shufflenet/trainval.prototxt"
+test_iter: 1000
+test_interval: 1000
+base_lr: 0.01
+lr_policy: "fixed"
+gamma: 0.1
+stepsize: 100000
+max_iter: 450000
+#momentum: 0.9
+weight_decay: 0.0005
+solver_mode: GPU
+type: "SGD"

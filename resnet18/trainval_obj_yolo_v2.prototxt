@@ -5,10 +5,10 @@ layer{
   top: "data"
   input_param{
     shape{
-      dim: 64
+      dim: 32
       dim: 3
-      dim: 224
-      dim: 224
+      dim: 352
+      dim: 352
     }
   }
 }
@@ -18,8 +18,9 @@ layer{
   top: "label"
   input_param{
     shape{
-      dim: 64
-      dim: 1
+      dim: 32
+      dim: 56
+      dim: 5
     }
   }
 }
@@ -43,7 +44,7 @@ layer{
   python_param{
     module: "augmentlayer"
     layer: "AugmentationLayer"
-    param_str: "{'dropout': 0.4,'crop': 1,'coarse_dropout': 1,'flip_lr': 1,'flip_ud': 1,'rot90': 1, 'sigmoid':1, 'gamma': 1}"
+    param_str: "{'dropout': 0.1,'crop': 0,'coarse_dropout': 0, 'sigmoid':1, 'gamma': 1}"
   }
 }
 layer {
@@ -100,6 +101,9 @@ layer {
   type: "ReLU"
   bottom: "conv1"
   top: "conv1"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "pool1"
@@ -209,6 +213,9 @@ layer {
   type: "ReLU"
   bottom: "res2a_branch2a"
   top: "res2a_branch2a"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res2a_branch2b"
@@ -261,6 +268,9 @@ layer {
   type: "ReLU"
   bottom: "res2a_branch2b"
   top: "res2a_branch2b"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res2a_branch2c"
@@ -320,6 +330,9 @@ layer {
   type: "ReLU"
   bottom: "res2a"
   top: "res2a"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res2b_branch2a"
@@ -372,6 +385,9 @@ layer {
   type: "ReLU"
   bottom: "res2b_branch2a"
   top: "res2b_branch2a"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res2b_branch2b"
@@ -424,6 +440,9 @@ layer {
   type: "ReLU"
   bottom: "res2b_branch2b"
   top: "res2b_branch2b"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res2b_branch2c"
@@ -483,6 +502,9 @@ layer {
   type: "ReLU"
   bottom: "res2b"
   top: "res2b"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res2c_branch2a"
@@ -535,6 +557,9 @@ layer {
   type: "ReLU"
   bottom: "res2c_branch2a"
   top: "res2c_branch2a"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res2c_branch2b"
@@ -587,6 +612,9 @@ layer {
   type: "ReLU"
   bottom: "res2c_branch2b"
   top: "res2c_branch2b"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res2c_branch2c"
@@ -646,6 +674,9 @@ layer {
   type: "ReLU"
   bottom: "res2c"
   top: "res2c"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res3a_branch1"
@@ -744,6 +775,9 @@ layer {
   type: "ReLU"
   bottom: "res3a_branch2a"
   top: "res3a_branch2a"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res3a_branch2b"
@@ -796,6 +830,9 @@ layer {
   type: "ReLU"
   bottom: "res3a_branch2b"
   top: "res3a_branch2b"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res3a_branch2c"
@@ -855,6 +892,9 @@ layer {
   type: "ReLU"
   bottom: "res3a"
   top: "res3a"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res3b_branch2a"
@@ -907,6 +947,9 @@ layer {
   type: "ReLU"
   bottom: "res3b_branch2a"
   top: "res3b_branch2a"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res3b_branch2b"
@@ -959,6 +1002,9 @@ layer {
   type: "ReLU"
   bottom: "res3b_branch2b"
   top: "res3b_branch2b"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "res3b_branch2c"
@@ -1018,6 +1064,9 @@ layer {
   type: "ReLU"
   bottom: "res3b"
   top: "res3b"
+  relu_param{
+    negative_slope: 0.1
+  }
 }
 layer {
   name: "pool5"
@@ -1031,12 +1080,12 @@ layer {
   }
 }
 layer {
-  name: "fc_tinyimagenet"
+  name: "fc_obj"
   type: "InnerProduct"
   bottom: "pool5"
-  top: "fc_tinyimagenet"
+  top: "fc_obj"
   inner_product_param {
-    num_output: 200
+    num_output: 150
     weight_filler {
       type: "msra"
     }
@@ -1046,30 +1095,119 @@ layer {
     }
   }
 }
-layer {
-  name: "prob"
-  type: "SoftmaxWithLoss"
-  bottom: "fc_tinyimagenet"
-  bottom: "label"
-  top: "loss"
+layer{
+  name: "final_relu"
+  type: "Sigmoid"
+  bottom: "fc_obj"
+  top: "fc_obj"
+  
 }
-layer {
-  bottom: "fc_tinyimagenet"
+
+layer{
+  name: "yolo"
+  type: "Python"
+  bottom: "fc_obj"
   bottom: "label"
-  top: "accuracy@1"
-  name: "accuracy|top1"
-  type: "Accuracy"
-  accuracy_param {
-    top_k: 1
+  top: "output_xy"
+  top: "output_wh"
+  top: "output_c"
+  top: "output_prob"
+  top: "gt_xy"
+  top: "gt_wh"
+  top: "gt_c"
+  top: "gt_prob"
+  top: "has_obj"
+  top: "mAP"
+  python_param{
+    module: "yolotransform"
+    layer: "YoloTransform"
+    param_str: "{\'max_bounding_box\': 6,\'nclass\': 20, \'threshold\':0.2, \'offset_x\':3, \'offset_y\':3, \'anchorboxes\':\'0.31,0.20,0.35,0.67|0.18,0.43,0.15,0.22|0.66,0.56,0.12,0.17|0.12,0.40,0.69,0.44|0.08,0.09,0.82,0.86|0.63,0.22,0.16,0.27\', \'input_width\':352, \'input_height\':352, \'version\':2}"
   }
 }
-layer {
-  bottom: "fc_tinyimagenet"
-  bottom: "label"
-  top: "accuracy@5"
-  name: "accuracy|top5"
-  type: "Accuracy"
-  accuracy_param {
-    top_k: 5
+
+layer{
+  name: "prod_oper"
+  type: "Eltwise"
+  bottom: "has_obj"
+  bottom: "output_c"
+  top: "noobj_c"
+  eltwise_param{
+    operation: PROD
   }
 }
+
+layer{
+  name: "prod_oper_gt"
+  type: "Eltwise"
+  bottom: "has_obj"
+  bottom: "gt_c"
+  top: "noobj_gt_c"
+  eltwise_param{
+    operation: PROD
+  }
+}
+
+
+layer{
+  name: "xy_loss_layer"
+  type: "EuclideanLoss"
+  bottom: "output_xy"
+  bottom: "gt_xy"
+  top: "xy_loss"
+  loss_weight: 5
+}
+
+layer{
+  name: "wh_loss_layer"
+  type: "EuclideanLoss"
+  bottom: "output_wh"
+  bottom: "gt_wh"
+  top: "wh_loss"
+  loss_weight: 5
+}
+
+layer{
+  name: "c_loss_layer"
+  type: "EuclideanLoss"
+  bottom: "output_c"
+  bottom: "gt_c"
+  top: "c_loss"
+  loss_weight: 1.0
+}
+
+layer{
+  name: "noobj_c_loss_layer"
+  type: "EuclideanLoss"
+  bottom: "noobj_c"
+  bottom: "noobj_gt_c"
+  top: "noobj_c_loss"
+  loss_weight: 0.5
+}
+
+layer{
+  name: "prob_loss_layer"
+  type: "EuclideanLoss"
+  bottom: "output_prob"
+  bottom: "gt_prob"
+  top: "prob_loss"
+  loss_weight: 1.0
+}
+layer{
+  name: "sum_loss"
+  type: "Eltwise"
+  bottom: "xy_loss"
+  bottom: "wh_loss"
+  bottom: "c_loss"
+  bottom: "noobj_c_loss"
+  bottom: "prob_loss"
+  top: "total_loss"
+  eltwise_param{
+    operation: SUM
+    coeff: 1.0
+    coeff: 1.0
+    coeff: 1.0
+    coeff: 1.0
+    coeff: 1.0
+  }
+}
+

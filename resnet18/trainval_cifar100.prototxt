@@ -1031,12 +1031,12 @@ layer {
   }
 }
 layer {
-  name: "fc_tinyimagenet"
+  name: "fc100"
   type: "InnerProduct"
   bottom: "pool5"
-  top: "fc_tinyimagenet"
+  top: "fc100"
   inner_product_param {
-    num_output: 200
+    num_output: 100
     weight_filler {
       type: "msra"
     }
@@ -1049,12 +1049,12 @@ layer {
 layer {
   name: "prob"
   type: "SoftmaxWithLoss"
-  bottom: "fc_tinyimagenet"
+  bottom: "fc100"
   bottom: "label"
   top: "loss"
 }
 layer {
-  bottom: "fc_tinyimagenet"
+  bottom: "fc100"
   bottom: "label"
   top: "accuracy@1"
   name: "accuracy|top1"
@@ -1064,7 +1064,7 @@ layer {
   }
 }
 layer {
-  bottom: "fc_tinyimagenet"
+  bottom: "fc100"
   bottom: "label"
   top: "accuracy@5"
   name: "accuracy|top5"

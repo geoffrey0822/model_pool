@@ -5,10 +5,10 @@ layer{
   top: "data"
   input_param{
     shape{
-      dim: 64
+      dim: 128
       dim: 3
-      dim: 224
-      dim: 224
+      dim: 128
+      dim: 128
     }
   }
 }
@@ -18,8 +18,8 @@ layer{
   top: "label"
   input_param{
     shape{
-      dim: 64
-      dim: 1
+      dim: 128
+      dim: 1344
     }
   }
 }
@@ -43,7 +43,7 @@ layer{
   python_param{
     module: "augmentlayer"
     layer: "AugmentationLayer"
-    param_str: "{'dropout': 0.4,'crop': 1,'coarse_dropout': 1,'flip_lr': 1,'flip_ud': 1,'rot90': 1, 'sigmoid':1, 'gamma': 1}"
+    param_str: "{'dropout': 0.3,'crop': 0,'coarse_dropout': 1,'flip_lr': 0,'flip_ud': 0,'rot90': 0}"
   }
 }
 layer {
@@ -53,8 +53,8 @@ layer {
   top: "conv1"
   convolution_param {
     num_output: 64
-    pad: 3
-    kernel_size: 7
+    pad: 1
+    kernel_size: 3
     stride: 2
     weight_filler {
       type: "msra"
@@ -1031,12 +1031,12 @@ layer {
   }
 }
 layer {
-  name: "fc_tinyimagenet"
+  name: "fc_obj"
   type: "InnerProduct"
   bottom: "pool5"
-  top: "fc_tinyimagenet"
+  top: "fc_obj"
   inner_product_param {
-    num_output: 200
+    num_output: 150
     weight_filler {
       type: "msra"
     }
@@ -1047,29 +1047,16 @@ layer {
   }
 }
 layer {
-  name: "prob"
-  type: "SoftmaxWithLoss"
-  bottom: "fc_tinyimagenet"
+  name: "yololoss"
+  type: "Python"
   bottom: "label"
-  top: "loss"
-}
-layer {
-  bottom: "fc_tinyimagenet"
-  bottom: "label"
-  top: "accuracy@1"
-  name: "accuracy|top1"
-  type: "Accuracy"
-  accuracy_param {
-    top_k: 1
-  }
-}
-layer {
-  bottom: "fc_tinyimagenet"
-  bottom: "label"
-  top: "accuracy@5"
-  name: "accuracy|top5"
-  type: "Accuracy"
-  accuracy_param {
-    top_k: 5
+  bottom: "fc_obj"
+  top: "bbox_loss"
+  top: "cls_loss"
+  top: "mAP"
+  python_param {
+    module: "yololoss"
+    layer: "YoloLoss"
+    param_str: "{\'max_bounding_box\':6 ,\'nclass\': 20, \'threshold\':0.300000, \'offset_x\':5, \'offset_y\':5,\'gamma_obj\':1,\'gamma_noobj\':0.5,\'gamma_cord\':5,\'classifier_loss\':\'L2NORM\',\'anchorboxes\':\'9,9|15,15|55,55|55,35|35,55|100,100\'}"
   }
 }

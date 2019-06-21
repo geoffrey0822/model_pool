@@ -1,7 +1,7 @@
-net: "m:/model_pool/resnet18/trainval.prototxt"
+net: "m:/model_pool/resnet18/trainval_obj_yolo_v2_2.prototxt"
 test_iter: 5000
 test_interval: 10000
-base_lr: 0.001
+base_lr: 0.1
 lr_policy: "fixed"
 gamma: 0.1
 stepsize: 20000
