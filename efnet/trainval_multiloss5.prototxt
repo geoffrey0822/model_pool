@@ -77,14 +77,22 @@ layer{
         lr_mult: 1
         decay_mult: 1
     }
+    param{
+        name: "si1_b"
+        lr_mult: 2
+        decay_mult: 0
+    }
     convolution_param{
         num_output: 32
         kernel_size: 7
         pad: 3
         stride: 1
-        bias_term: false
         weight_filler{
             type: "msra"
+        }
+        bias_filler{
+            type: "constant"
+            value: 0
         }
     }
 }
@@ -104,14 +112,22 @@ layer{
         lr_mult: 1
         decay_mult: 1
     }
+    param{
+        name: "si1_b"
+        lr_mult: 2
+        decay_mult: 0
+    }
     convolution_param{
         num_output: 32
         kernel_size: 7
         pad: 3
         stride: 1
-        bias_term: false
         weight_filler{
             type: "msra"
+        }
+        bias_filler{
+            type: "constant"
+            value: 0
         }
     }
 }
@@ -142,13 +158,20 @@ layer{
         lr_mult: 1
         decay_mult: 1
     }
+    param{
+        lr_mult: 2
+        decay_mult: 0
+    }
     convolution_param{
         num_output: 32
         kernel_size: 1
         pad: 0
-        bias_term: false
         weight_filler{
             type: "msra"
+        }
+        bias_filler{
+            type: "constant"
+            value: 0
         }
     }
 }
@@ -186,7 +209,7 @@ layer{
 }
 layer{
     name: "relu1"
-    type: "ReLU"
+    type: "Sigmoid"
     bottom: "conv1"
     top: "conv1"
 }
@@ -211,9 +234,41 @@ layer{
     }
 }
 layer{
-    name: "conv2"
+    name: "pool1_conv1x1"
     type: "Convolution"
     bottom: "pool1" #112
+    top: "pool1_conv1x1"
+    param{
+        lr_mult: 1
+        decay_mult: 1
+    }
+    param{
+        lr_mult: 2
+        decay_mult: 0
+    }
+    convolution_param{
+        num_output: 128
+        kernel_size: 1
+        pad: 0
+        weight_filler{
+            type: "msra"
+        }
+        bias_filler{
+            type: "constant"
+            value: 0
+        }
+    }
+}
+layer{
+    name: "pool1_conv1x1_relu"
+    type: "ReLU"
+    bottom: "pool1_conv1x1"
+    top: "pool1_conv1x1"
+}
+layer{
+    name: "conv2"
+    type: "Convolution"
+    bottom: "pool1_conv1x1" #112
     top: "conv2"
     param{
         lr_mult: 1

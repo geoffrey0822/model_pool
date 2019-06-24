@@ -1,7 +1,7 @@
-net: "/dev_shared/model_pool/efnet/trainval_multiloss3_light.prototxt"
+net: "m:/model_pool/efnet/trainval_multiloss9.prototxt"
 test_iter: 5000
 test_interval: 10000
-base_lr: 0.0001
+base_lr: 0.00001
 lr_policy: "fixed"
 gamma: 0.1
 stepsize: 20000

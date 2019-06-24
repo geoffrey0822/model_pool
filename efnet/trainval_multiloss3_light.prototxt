@@ -5,7 +5,7 @@ layer{
     top: "data"
     input_param{
         shape{
-            dim: 64
+            dim: 32
             dim: 3
             dim: 256
             dim: 256
@@ -18,7 +18,7 @@ layer{
     top: "label"
     input_param{
         shape{
-            dim: 64
+            dim: 32
             dim: 1
         }
     }
@@ -558,10 +558,10 @@ layer{
     }
 }
 layer{
-    name: "fc_caltech97"
+    name: "fc_cifar10"
     type: "InnerProduct"
     bottom: "pool6"
-    top: "fc_caltech97"
+    top: "fc_cifar10"
     param{
         lr_mult: 1
         decay_mult: 1
@@ -571,7 +571,7 @@ layer{
         decay_mult: 0
     }
     inner_product_param{
-        num_output:97
+        num_output:10
         weight_filler{
             type: "msra"
         }
@@ -584,14 +584,14 @@ layer{
 layer{
     name: "loss"
     type: "SoftmaxWithLoss"
-    bottom: "fc_caltech97"
+    bottom: "fc_cifar10"
     bottom: "label"
     top: "loss-1"
 }
 layer{
     name: "accuracy"
     type: "Accuracy"
-    bottom: "fc_caltech97"
+    bottom: "fc_cifar10"
     bottom: "label"
     top: "top-1"
 }
