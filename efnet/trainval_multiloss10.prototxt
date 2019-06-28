@@ -42,7 +42,7 @@ layer{
   python_param{
     module: "augmentlayer"
     layer: "AugmentationLayer"
-    param_str: "{'dropout': 0.2,'crop': 1,'coarse_dropout': 0,'flip_lr': 1,'flip_ud': 1,'rot90': 1, 'sigmoid':0, 'gamma': 0}"
+    param_str: "{'step':4065,'dropout': 0.2,'crop': 1,'coarse_dropout': 0,'flip_lr': 1,'flip_ud': 1,'rot90': 1, 'sigmoid':0, 'gamma': 0}"
   }
 }
 layer{
@@ -146,7 +146,7 @@ layer{
     eltwise_param{
         operation: SUM
         coeff: 0.5
-        coeff: 0.5
+        coeff: -0.5
     }
 }
 layer{
@@ -163,7 +163,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 32
+        num_output: 48
         kernel_size: 7
         pad: 3
         stride: 1
@@ -203,7 +203,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 64
+        num_output: 96
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -235,7 +235,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 64
+        num_output: 48
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -252,6 +252,36 @@ layer{
     type: "ReLU"
     bottom: "mlp1_conv2"
     top: "mlp1_conv2"
+}
+layer {
+  name: "bn1"
+  type: "BatchNorm"
+  bottom: "mlp1_conv2"
+  top: "mlp1_conv2"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  batch_norm_param {
+    use_global_stats:false
+  }
+}
+layer {
+  name: "scale1"
+  type: "Scale"
+  bottom: "mlp1_conv2"
+  top: "mlp1_conv2"
+  scale_param {
+    bias_term: true
+  }
 }
 layer{
     name: "pool1"
@@ -279,7 +309,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 96
+        num_output: 64
         kernel_size: 3
         pad: 1
         weight_filler{
@@ -311,7 +341,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 96
+        num_output: 128
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -343,7 +373,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 96
+        num_output: 64
         kernel_size: 1
         pad: 1
         weight_filler{
@@ -444,7 +474,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 128
+        num_output: 256
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -582,7 +612,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 256
+        num_output: 512
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -781,10 +811,10 @@ layer{
     }
 }
 layer{
-    name: "final_conv_cifar100"
+    name: "final_conv_97"
     type: "Convolution"
     bottom: "pool5"
-    top: "final_conv_cifar100"
+    top: "final_conv_97"
     param{
         lr_mult: 1
         decay_mult: 1
@@ -794,7 +824,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 100
+        num_output: 97
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -809,13 +839,13 @@ layer{
 layer{
     name: "final_relu"
     type: "ReLU"
-    bottom: "final_conv_cifar100"
-    top: "final_conv_cifar100"
+    bottom: "final_conv_97"
+    top: "final_conv_97"
 }
 layer{
     name: "global_pool"
     type: "Pooling"
-    bottom: "final_conv_cifar100"
+    bottom: "final_conv_97"
     top: "global_pool"
     pooling_param{
         pool: AVE

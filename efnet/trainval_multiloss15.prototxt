@@ -19,8 +19,7 @@ layer{
     input_param{
         shape{
             dim: 64
-            dim: 56
-            dim: 5
+            dim: 1
         }
     }
 }
@@ -43,7 +42,7 @@ layer{
   python_param{
     module: "augmentlayer"
     layer: "AugmentationLayer"
-    param_str: "{'dropout': 0.3,'crop': 0,'coarse_dropout': 0,'flip_lr': 0,'flip_ud': 0,'rot90': 0, 'sigmoid':0, 'gamma': 1}"
+    param_str: "{'step':4065,'dropout': 0.2,'crop': 1,'coarse_dropout': 0,'flip_lr': 1,'flip_ud': 1,'rot90': 1, 'sigmoid':0, 'gamma': 0}"
   }
 }
 layer{
@@ -147,7 +146,7 @@ layer{
     eltwise_param{
         operation: SUM
         coeff: 0.5
-        coeff: 0.5
+        coeff: -0.5
     }
 }
 layer{
@@ -164,7 +163,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 32
+        num_output: 48
         kernel_size: 7
         pad: 3
         stride: 1
@@ -204,7 +203,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 64
+        num_output: 48
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -236,7 +235,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 64
+        num_output: 48
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -253,6 +252,37 @@ layer{
     type: "ReLU"
     bottom: "mlp1_conv2"
     top: "mlp1_conv2"
+}
+
+layer {
+  name: "bn1"
+  type: "BatchNorm"
+  bottom: "mlp1_conv2"
+  top: "mlp1_conv2"
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  param {
+    lr_mult: 0
+    decay_mult: 0
+  }
+  batch_norm_param {
+    use_global_stats:false
+  }
+}
+layer {
+  name: "scale1"
+  type: "Scale"
+  bottom: "mlp1_conv2"
+  top: "mlp1_conv2"
+  scale_param {
+    bias_term: true
+  }
 }
 layer{
     name: "pool1"
@@ -280,7 +310,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 96
+        num_output: 64
         kernel_size: 3
         pad: 1
         weight_filler{
@@ -312,7 +342,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 96
+        num_output: 16
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -344,9 +374,9 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 96
+        num_output: 32
         kernel_size: 1
-        pad: 1
+        pad: 0
         weight_filler{
             type: "msra"
         }
@@ -356,11 +386,61 @@ layer{
         }
     }
 }
+layer{
+    name: "mlp2_relu3"
+    type: "ReLU"
+    bottom: "mlp2_conv3"
+    top: "mlp2_conv3"
+}
+layer{
+    name: "mlp2_conv4"
+    type: "Convolution"
+    bottom: "mlp2_conv3"
+    top: "mlp2_conv4"
+    param{
+        lr_mult: 1
+        decay_mult: 1
+    }
+    param{
+        lr_mult: 2
+        decay_mult: 0
+    }
+    convolution_param{
+        num_output: 64
+        kernel_size: 1
+        pad: 0
+        weight_filler{
+            type: "msra"
+        }
+        bias_filler{
+            type: "constant"
+            value: 0
+        }
+    }
+}
+layer{
+    name: "mlp2_relu4"
+    type: "ReLU"
+    bottom: "mlp2_conv4"
+    top: "mlp2_conv4"
+}
+layer{
+    name: "mlp2_eltwise"
+    type: "Eltwise"
+    bottom: "mlp2_conv1"
+    bottom: "mlp2_conv4"
+    top: "mlp2_residual"
+    eltwise_param{
+        operation: SUM
+        coeff: 0.5
+        coeff: 0.5
+    }
+}
 layer {
   name: "bn2"
   type: "BatchNorm"
-  bottom: "mlp2_conv3"
-  top: "mlp2_conv3"
+  bottom: "mlp2_residual"
+  top: "mlp2_residual"
   param {
     lr_mult: 0
     decay_mult: 0
@@ -380,8 +460,8 @@ layer {
 layer {
   name: "scale2"
   type: "Scale"
-  bottom: "mlp2_conv3"
-  top: "mlp2_conv3"
+  bottom: "mlp2_residual"
+  top: "mlp2_residual"
   scale_param {
     bias_term: true
   }
@@ -389,7 +469,7 @@ layer {
 layer{
     name: "pool2"
     type: "Pooling"
-    bottom: "mlp2_conv3"
+    bottom: "mlp2_residual"
     top: "pool2"
     pooling_param{
         pool: MAX
@@ -445,7 +525,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 128
+        num_output: 32
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -477,7 +557,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 128
+        num_output: 64
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -495,11 +575,55 @@ layer{
     bottom: "mlp3_conv3"
     top: "mlp3_conv3"
 }
+layer{
+    name: "mlp3_conv4"
+    type: "Convolution"
+    bottom: "mlp3_conv3"
+    top: "mlp3_conv4"
+    param{
+        lr_mult: 1
+        decay_mult: 1
+    }
+    param{
+        lr_mult: 2
+        decay_mult: 0
+    }
+    convolution_param{
+        num_output: 128
+        kernel_size: 1
+        pad: 0
+        weight_filler{
+            type: "msra"
+        }
+        bias_filler{
+            type: "constant"
+            value: 0
+        }
+    }
+}
+layer{
+    name: "mlp3_relu4"
+    type: "ReLU"
+    bottom: "mlp3_conv4"
+    top: "mlp3_conv4"
+}
+layer{
+    name: "mlp3_eltwise"
+    type: "Eltwise"
+    bottom: "mlp3_conv1"
+    bottom: "mlp3_conv4"
+    top: "mlp3_residual"
+    eltwise_param{
+        operation: SUM
+        coeff: 0.5
+        coeff: 0.5
+    }
+}
 layer {
   name: "bn3"
   type: "BatchNorm"
-  bottom: "mlp3_conv3"
-  top: "mlp3_conv3"
+  bottom: "mlp3_residual"
+  top: "mlp3_residual"
   param {
     lr_mult: 0
     decay_mult: 0
@@ -519,8 +643,8 @@ layer {
 layer {
   name: "scale3"
   type: "Scale"
-  bottom: "mlp3_conv3"
-  top: "mlp3_conv3"
+  bottom: "mlp3_residual"
+  top: "mlp3_residual"
   scale_param {
     bias_term: true
   }
@@ -528,7 +652,7 @@ layer {
 layer{
     name: "pool3"
     type: "Pooling"
-    bottom: "mlp3_conv3"
+    bottom: "mlp3_residual"
     top: "pool3"
     pooling_param{
         pool: MAX
@@ -583,7 +707,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 256
+        num_output: 64
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -615,7 +739,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 256
+        num_output: 128
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -633,11 +757,55 @@ layer{
     bottom: "mlp4_conv3"
     top: "mlp4_conv3"
 }
+layer{
+    name: "mlp4_conv4"
+    type: "Convolution"
+    bottom: "mlp4_conv3"
+    top: "mlp4_conv4"
+    param{
+        lr_mult: 1
+        decay_mult: 1
+    }
+    param{
+        lr_mult: 2
+        decay_mult: 0
+    }
+    convolution_param{
+        num_output: 256
+        kernel_size: 1
+        pad: 0
+        weight_filler{
+            type: "msra"
+        }
+        bias_filler{
+            type: "constant"
+            value: 0
+        }
+    }
+}
+layer{
+    name: "mlp4_relu4"
+    type: "ReLU"
+    bottom: "mlp4_conv4"
+    top: "mlp4_conv4"
+}
+layer{
+    name: "mlp4_eltwise"
+    type: "Eltwise"
+    bottom: "mlp4_conv1"
+    bottom: "mlp4_conv4"
+    top: "mlp4_residual"
+    eltwise_param{
+        operation: SUM
+        coeff: 0.5
+        coeff: 0.5
+    }
+}
 layer {
   name: "bn4"
   type: "BatchNorm"
-  bottom: "mlp4_conv3"
-  top: "mlp4_conv3"
+  bottom: "mlp4_residual"
+  top: "mlp4_residual"
   param {
     lr_mult: 0
     decay_mult: 0
@@ -657,8 +825,8 @@ layer {
 layer {
   name: "scale4"
   type: "Scale"
-  bottom: "mlp4_conv3"
-  top: "mlp4_conv3"
+  bottom: "mlp4_residual"
+  top: "mlp4_residual"
   scale_param {
     bias_term: true
   }
@@ -666,7 +834,7 @@ layer {
 layer{
     name: "pool4"
     type: "Pooling"
-    bottom: "mlp4_conv3"
+    bottom: "mlp4_residual"
     top: "pool4"
     pooling_param{
         pool: MAX
@@ -775,17 +943,17 @@ layer{
     bottom: "mlp5_conv2"
     top: "pool5"
     pooling_param{
-        pool: AVE
+        pool: MAX
         kernel_size: 3
         pad: 1
         stride: 2
     }
 }
 layer{
-    name: "final_conv_voc2012"
-    type: "InnerProduct"
+    name: "final_conv_97"
+    type: "Convolution"
     bottom: "pool5"
-    top: "final_conv_voc2012"
+    top: "final_conv_97"
     param{
         lr_mult: 1
         decay_mult: 1
@@ -794,8 +962,10 @@ layer{
         lr_mult: 2
         decay_mult: 0
     }
-    inner_product_param{
-        num_output: 3125 # grid_x * grid_y * n_box*(n_class+5)
+    convolution_param{
+        num_output: 97
+        kernel_size: 1
+        pad: 0
         weight_filler{
             type: "msra"
         }
@@ -806,117 +976,32 @@ layer{
     }
 }
 layer{
-  name: "final_relu"
-  type: "Sigmoid"
-  bottom: "final_conv_voc2012"
-  top: "final_conv_voc2012"
-}
-
-layer{
-  name: "yolo"
-  type: "Python"
-  bottom: "final_conv_voc2012"
-  bottom: "label"
-  top: "output_xy"
-  top: "output_wh"
-  top: "output_c"
-  top: "output_prob"
-  top: "gt_xy"
-  top: "gt_wh"
-  top: "gt_c"
-  top: "gt_prob"
-  top: "has_obj"
-  top: "mAP"
-  python_param{
-    module: "yolotrain"
-    layer: "YoloTrain"
-    param_str: "{\'max_bounding_box\': 5,\'nclass\': 20, \'threshold\':0.5, \'grid_x\':5, \'grid_y\':5, \'anchorboxes\':\'0.33,0.64|0.13,0.20|0.67,0.44|0.15,0.21|0.81,0.85\', \'input_width\':256, \'input_height\':256, \'version\':2}"
-  }
-}
-
-layer{
-  name: "prod_oper"
-  type: "Eltwise"
-  bottom: "has_obj"
-  bottom: "output_c"
-  top: "noobj_c"
-  eltwise_param{
-    operation: PROD
-  }
-}
-
-layer{
-  name: "prod_oper_gt"
-  type: "Eltwise"
-  bottom: "has_obj"
-  bottom: "gt_c"
-  top: "noobj_gt_c"
-  eltwise_param{
-    operation: PROD
-  }
-}
-
-
-layer{
-  name: "xy_loss_layer"
-  type: "EuclideanLoss"
-  bottom: "output_xy"
-  bottom: "gt_xy"
-  top: "xy_loss"
-  loss_weight: 5
-}
-
-layer{
-  name: "wh_loss_layer"
-  type: "EuclideanLoss"
-  bottom: "output_wh"
-  bottom: "gt_wh"
-  top: "wh_loss"
-  loss_weight: 5
-}
-
-layer{
-  name: "c_loss_layer"
-  type: "EuclideanLoss"
-  bottom: "output_c"
-  bottom: "gt_c"
-  top: "c_loss"
-  loss_weight: 1.0
-}
-
-layer{
-  name: "noobj_c_loss_layer"
-  type: "EuclideanLoss"
-  bottom: "noobj_c"
-  bottom: "noobj_gt_c"
-  top: "noobj_c_loss"
-  loss_weight: 0.5
-}
-
-layer{
-  name: "prob_loss_layer"
-  type: "EuclideanLoss"
-  bottom: "output_prob"
-  bottom: "gt_prob"
-  top: "prob_loss"
-  loss_weight: 1.0
+    name: "final_relu"
+    type: "ReLU"
+    bottom: "final_conv_97"
+    top: "final_conv_97"
 }
 layer{
-  name: "sum_loss"
-  type: "Eltwise"
-  bottom: "xy_loss"
-  bottom: "wh_loss"
-  bottom: "c_loss"
-  bottom: "noobj_c_loss"
-  bottom: "prob_loss"
-  top: "total_loss"
-  eltwise_param{
-    operation: SUM
-    coeff: 1.0
-    coeff: 1.0
-    coeff: 1.0
-    coeff: 1.0
-    coeff: 1.0
-  }
+    name: "global_pool"
+    type: "Pooling"
+    bottom: "final_conv_97"
+    top: "global_pool"
+    pooling_param{
+        pool: AVE
+        kernel_size: 7
+    }
 }
-
+layer{
+    name: "loss"
+    type: "SoftmaxWithLoss"
+    bottom: "global_pool"
+    bottom: "label"
+    top: "loss-1"
+}
+layer{
+    name: "accuracy"
+    type: "Accuracy"
+    bottom: "global_pool"
+    bottom: "label"
+    top: "top-1"
+}
