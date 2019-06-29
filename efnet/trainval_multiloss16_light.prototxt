@@ -973,10 +973,10 @@ layer{
     }
 }
 layer{
-    name: "final_conv_97"
+    name: "final_conv_100"
     type: "Convolution"
     bottom: "pool5"
-    top: "final_conv_97"
+    top: "final_conv_100"
     param{
         lr_mult: 1
         decay_mult: 1
@@ -986,7 +986,7 @@ layer{
         decay_mult: 0
     }
     convolution_param{
-        num_output: 97
+        num_output: 100
         kernel_size: 1
         pad: 0
         weight_filler{
@@ -1001,13 +1001,13 @@ layer{
 layer{
     name: "final_relu"
     type: "ReLU"
-    bottom: "final_conv_97"
-    top: "final_conv_97"
+    bottom: "final_conv_100"
+    top: "final_conv_100"
 }
 layer{
     name: "global_pool"
     type: "Pooling"
-    bottom: "final_conv_97"
+    bottom: "final_conv_100"
     top: "global_pool"
     pooling_param{
         pool: AVE
